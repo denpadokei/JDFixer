@@ -31,8 +31,8 @@ namespace JDFixer
         {
             //Plugin.Log.Debug("TimeController Start");
 
-            GameObject canvasGo = new GameObject("Canvas");
-            canvasGo.transform.parent = transform;
+            var canvasGo = new GameObject("Canvas");
+            canvasGo.transform.parent = this.transform;
             canvas = canvasGo.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.WorldSpace;
 
@@ -48,7 +48,7 @@ namespace JDFixer
             if (earthday && text_shown == false && audioTime.songTime >= 2)
             {
                 text.gameObject.SetActive(true);
-                tween.AddTween(new FloatTween(0, 1, value => text.alpha = value, 3.5f, EaseType.InCubic), text);
+                _ = tween.AddTween(new FloatTween(0, 1, value => text.alpha = value, 3.5f, EaseType.InCubic), text);
                 text_shown = true;
                 return;
             }
@@ -56,21 +56,21 @@ namespace JDFixer
             if (text_shown == false && audioTime.songTime >= 0.25 * length)
             {
                 text.gameObject.SetActive(true);
-                tween.AddTween(new FloatTween(0, 1, value => text.alpha = value, 3.5f, EaseType.InCubic), text);
+                _ = tween.AddTween(new FloatTween(0, 1, value => text.alpha = value, 3.5f, EaseType.InCubic), text);
                 text_shown = true;
             }
             else if (!earthday && text.gameObject.activeSelf && audioTime.songTime >= 0.5 * length)
             {
                 //text.CrossFadeAlpha(0f, -3.5f, false); // This doesnt work
-                tween.AddTween(new FloatTween(1, 0, value => text.alpha = value, 3.5f, EaseType.InCubic), text);
+                _ = tween.AddTween(new FloatTween(1, 0, value => text.alpha = value, 3.5f, EaseType.InCubic), text);
             }
         }
 
         private static TextMeshProUGUI CreateText(Canvas canvas, Vector2 position)
         {
-            GameObject gameObject = new GameObject("CustomUIText");
+            var gameObject = new GameObject("CustomUIText");
             gameObject.SetActive(false);
-            TextMeshProUGUI tmp = gameObject.AddComponent<TextMeshProUGUI>();
+            var tmp = gameObject.AddComponent<TextMeshProUGUI>();
 
             tmp.rectTransform.SetParent(canvas.transform, false);
             tmp.rectTransform.transform.localPosition = Vector3.zero;
@@ -81,13 +81,11 @@ namespace JDFixer
                 earthday = true;
                 tmp.text = "Hello there.\nMaking mods is hard work. If JDFixer has helped you,\nI ask one favor in return.\n <#ffff00>Today is Earth Day. We are in a climate emergency.\nI ask you to do anything and everything you can to preserve our and your future.\nWe CAN do this together.";
             }
-            else if (DateTime.Compare(DateTime.Now, new DateTime(DateTime.Now.Year, 4, 1)) >= 0 && DateTime.Compare(DateTime.Now, new DateTime(DateTime.Now.Year, 4, 2)) < 1)
-            {
-                tmp.text = "Hello, Happy April Fools and have fun with this new game mode!\nHint - If you want out, you may turn it off in the config ^^";
-            }
             else
             {
-                tmp.text = "";
+                tmp.text = DateTime.Compare(DateTime.Now, new DateTime(DateTime.Now.Year, 4, 1)) >= 0 && DateTime.Compare(DateTime.Now, new DateTime(DateTime.Now.Year, 4, 2)) < 1
+                    ? "Hello, Happy April Fools and have fun with this new game mode!\nHint - If you want out, you may turn it off in the config ^^"
+                    : "";
             }
             tmp.fontSize = 0.12f;
             tmp.color = new Color(1f, 0f, 0.5f);

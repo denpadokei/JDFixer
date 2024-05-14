@@ -1,9 +1,8 @@
-﻿using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using IPA.Config.Stores;
+﻿using IPA.Config.Stores;
 using IPA.Config.Stores.Attributes;
 using IPA.Config.Stores.Converters;
-
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo(GeneratedStore.AssemblyVisibilityTarget)]
 namespace JDFixer
@@ -14,7 +13,6 @@ namespace JDFixer
 
         internal virtual bool enabled { get; set; } = false;
 
-
         internal float jumpDistance { get; set; } = 24f;
         internal virtual int minJumpDistance { get; set; } = 12;
         internal virtual int maxJumpDistance { get; set; } = 35;
@@ -24,7 +22,6 @@ namespace JDFixer
         [NonNullable]
         internal virtual List<JDPref> preferredValues { get; set; } = new List<JDPref>();
 
-
         internal float reactionTime { get; set; } = 500f;
         internal virtual int minReactionTime { get; set; } = 300;
         internal virtual int maxReactionTime { get; set; } = 1600;
@@ -33,7 +30,6 @@ namespace JDFixer
         [UseConverter(typeof(ListConverter<RTPref>))]
         [NonNullable]
         internal virtual List<RTPref> rt_preferredValues { get; set; } = new List<RTPref>();
-
 
         //1.19.1 Feature update
         internal virtual int slider_setting { get; set; } = 0;
@@ -54,7 +50,6 @@ namespace JDFixer
         internal virtual int song_speed_setting { get; set; } = 0;
 
         internal bool af_enabled { get; set; } = false;
-
 
         /// <summary>
         /// Call this to force BSIPA to update the config file. This is also called by BSIPA if it detects the file was modified.

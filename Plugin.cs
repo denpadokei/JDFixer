@@ -3,9 +3,9 @@ using IPA;
 using IPA.Config;
 using IPA.Config.Stores;
 using IPA.Loader;
-using IPALogger = IPA.Logging.Logger;
 using JDFixer.Installers;
 using SiraUtil.Zenject;
+using IPALogger = IPA.Logging.Logger;
 
 namespace JDFixer
 {
@@ -27,7 +27,6 @@ namespace JDFixer
             //TimeSetup.Inject(zenjector);
         }
 
-
         [OnEnable]
         public void OnApplicationStart()
         {
@@ -38,10 +37,9 @@ namespace JDFixer
             harmony = new Harmony("com.zephyr.BeatSaber.JDFixer");
             //TimeSetup.Patch();
             harmony.PatchAll(System.Reflection.Assembly.GetExecutingAssembly());
-            CheckForCustomCampaigns();
+            _ = CheckForCustomCampaigns();
             UI.Donate.Refresh_Text();
         }
-
 
         [OnDisable]
         public void OnApplicationQuit()
@@ -49,7 +47,6 @@ namespace JDFixer
             PluginConfig.Instance.Changed();
             harmony.UnpatchSelf();
         }
-
 
         internal static bool CheckForCustomCampaigns()
         {

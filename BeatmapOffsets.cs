@@ -16,7 +16,6 @@ namespace JDFixer
         internal static string jd_offset_snap_value = "";
         internal static string rt_offset_snap_value = "";
 
-
         internal static void Create_Snap_Points(ref List<float> Snap_Points, ref List<string> Offset_Points, float _selectedBeatmap_Offset, float _selectedBeatmap_JD_RT, float _selectedBeatmap_UnitOffset, float _selectedBeatmap_MinSlider, float _selectedBeatmap_MaxSlider)
         {
             //Plugin.Log.Debug("Create Snap Points");
@@ -28,14 +27,14 @@ namespace JDFixer
             Offset_Points.Clear();
             Offset_Points.Add("( 0, " + _selectedBeatmap_Offset.ToString("0.##") + " )");
 
-            float point = _selectedBeatmap_JD_RT + _selectedBeatmap_UnitOffset;
-            int multiple = 1;
+            var point = _selectedBeatmap_JD_RT + _selectedBeatmap_UnitOffset;
+            var multiple = 1;
             while (point <= _selectedBeatmap_MaxSlider)
             {
                 Snap_Points.Add(point);
                 point += _selectedBeatmap_UnitOffset;
 
-                Offset_Points.Add("( " + multiple + "/" + PluginConfig.Instance.offset_fraction + ", " + (_selectedBeatmap_Offset + multiple / PluginConfig.Instance.offset_fraction).ToString("0.##") + " )");
+                Offset_Points.Add("( " + multiple + "/" + PluginConfig.Instance.offset_fraction + ", " + (_selectedBeatmap_Offset + (multiple / PluginConfig.Instance.offset_fraction)).ToString("0.##") + " )");
                 multiple += 1;
             }
 
@@ -46,7 +45,7 @@ namespace JDFixer
                 Snap_Points.Insert(0, point);
                 point -= _selectedBeatmap_UnitOffset;
 
-                Offset_Points.Insert(0, "( " + multiple + "/" + PluginConfig.Instance.offset_fraction + ", " + (_selectedBeatmap_Offset + multiple / PluginConfig.Instance.offset_fraction).ToString("0.##") + " )");
+                Offset_Points.Insert(0, "( " + multiple + "/" + PluginConfig.Instance.offset_fraction + ", " + (_selectedBeatmap_Offset + (multiple / PluginConfig.Instance.offset_fraction)).ToString("0.##") + " )");
                 multiple -= 1;
             }
 
@@ -57,7 +56,6 @@ namespace JDFixer
                 Plugin.Log.Debug(i + ": " + Offset_Points[i]);
             }*/
         }
-
 
         internal static void Calculate_Nearest_JD_Snap_Point(float JD_Value)
         {
@@ -73,7 +71,7 @@ namespace JDFixer
                 return;
             }
 
-            for (int i = 0; i < JD_Snap_Points.Count; i++)
+            for (var i = 0; i < JD_Snap_Points.Count; i++)
             {
                 //Plugin.Log.Debug(i + ": " + JD_Snap_Points[i]);
 
@@ -90,7 +88,6 @@ namespace JDFixer
             jd_snap_value = JD_Snap_Points[JD_Snap_Points.Count - 1];
         }
 
-
         internal static void Calculate_Nearest_RT_Snap_Point(float RT_Value)
         {
             //Plugin.Log.Debug("Count: " + RT_Snap_Points.Count + " " + RT_Value);
@@ -105,7 +102,7 @@ namespace JDFixer
                 return;
             }
 
-            for (int i = 0; i < RT_Snap_Points.Count; i++)
+            for (var i = 0; i < RT_Snap_Points.Count; i++)
             {
                 //Plugin.Log.Debug(i + ": " + RT_Snap_Points[i]);
 

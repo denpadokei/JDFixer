@@ -1,5 +1,4 @@
-﻿using BeatSaberMarkupLanguage;
-using HMUI;
+﻿using HMUI;
 using Zenject;
 
 namespace JDFixer.UI
@@ -16,24 +15,28 @@ namespace JDFixer.UI
         [Inject]
         private void Construct(PreferencesListViewController preferencesListViewController, RTPreferencesListViewController rTPreferencesListViewController)
         {
-            _prefListView = preferencesListViewController;
-            _rtPrefListView = rTPreferencesListViewController;
+            this._prefListView = preferencesListViewController;
+            this._rtPrefListView = rTPreferencesListViewController;
         }
 
-        protected override void DidActivate(bool firstActivation, bool addedToHierarchy, bool screenSystemEnabling)
+        public override void DidActivate(bool firstActivation, bool addedToHierarchy, bool screenSystemEnabling)
         {
-            showBackButton = true;
-            SetTitle("JDFixer Preferences");
+            this.showBackButton = true;
+            this.SetTitle("JDFixer Preferences");
 
             if (PluginConfig.Instance.use_rt_pref)
-                ProvideInitialViewControllers(_rtPrefListView);
+            {
+                this.ProvideInitialViewControllers(this._rtPrefListView);
+            }
             else
-                ProvideInitialViewControllers(_prefListView);
+            {
+                this.ProvideInitialViewControllers(this._prefListView);
+            }
         }
 
-        protected override void BackButtonWasPressed(ViewController topViewController)
+        public override void BackButtonWasPressed(ViewController topViewController)
         {
-            _parentFlow?.DismissFlowCoordinator(this);
+            this._parentFlow?.DismissFlowCoordinator(this);
         }
     }
 }

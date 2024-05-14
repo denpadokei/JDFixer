@@ -26,22 +26,22 @@ namespace JDFixer.UI
 
         internal static void Patreon()
         {
-            Process.Start("https://www.patreon.com/xeph_yr");
+            _ = Process.Start("https://www.patreon.com/xeph_yr");
         }
 
         internal static void Kofi()
         {
-            Process.Start("https://ko-fi.com/zeph_yr");
+            _ = Process.Start("https://ko-fi.com/zeph_yr");
         }
 
         private static async Task Get_Donate_Modal_Text()
         {
             //Plugin.Log.Debug("reply: " + donate_modal_text_dynamic);
-            string reply_text = "Loading...";
-            string reply_hint = "";
-            string reply_update = "";
+            var reply_text = "Loading...";
+            var reply_hint = "";
+            var reply_update = "";
 
-            using (WebClient client = new WebClient())
+            using (var client = new WebClient())
             {
                 try
                 {
@@ -74,8 +74,8 @@ namespace JDFixer.UI
 
             donate_modal_text_dynamic = reply_text;
 
-            int hint_start = reply_hint.IndexOf("[JDFIXER]");
-            int hint_end = reply_hint.IndexOf("###", hint_start);
+            var hint_start = reply_hint.IndexOf("[JDFIXER]");
+            var hint_end = reply_hint.IndexOf("###", hint_start);
 
             if (hint_start != -1)
             {
@@ -84,8 +84,8 @@ namespace JDFixer.UI
                 donate_modal_hint_dynamic = reply_hint.Substring(hint_start + 9, hint_end - hint_start - 9); // Yes. And no, it's not wrong.
             }
 
-            int update_start = reply_update.IndexOf("[JDFIXER]");
-            int update_end = reply_update.IndexOf("###", update_start);
+            var update_start = reply_update.IndexOf("[JDFIXER]");
+            var update_end = reply_update.IndexOf("###", update_start);
             if (update_start != -1)
             {
                 donate_update_dynamic = reply_update.Substring(update_start + 9, update_end - update_start - 9);

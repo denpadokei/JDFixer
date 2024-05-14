@@ -2,7 +2,8 @@
 using System;
 using System.Collections.Generic;
 using Zenject;
-
+using static BeatSaberMarkupLanguage.Components.KEYBOARD;
+using static IPA.Logging.Logger;
 
 namespace JDFixer.Managers
 {
@@ -14,7 +15,6 @@ namespace JDFixer.Managers
 
         private readonly List<IBeatmapInfoUpdater> beatmapInfoUpdaters;
 
-
         [Inject]
         private JDFixerUIManager(StandardLevelDetailViewController standardLevelDetailViewController, MissionSelectionMapViewController missionSelectionMapViewController, MainMenuViewController mainMenuViewController, List<IBeatmapInfoUpdater> iBeatmapInfoUpdaters)
         {
@@ -24,96 +24,95 @@ namespace JDFixer.Managers
             missionSelection = missionSelectionMapViewController;
             mainMenu = mainMenuViewController;
 
-            beatmapInfoUpdaters = iBeatmapInfoUpdaters;
+            this.beatmapInfoUpdaters = iBeatmapInfoUpdaters;
         }
-
 
         public void Initialize()
         {
             //Plugin.Log.Debug("Initialize()");
 
-            levelDetail.didChangeDifficultyBeatmapEvent += LevelDetail_didChangeDifficultyBeatmapEvent;
-            levelDetail.didChangeContentEvent += LevelDetail_didChangeContentEvent;
+            levelDetail.didChangeDifficultyBeatmapEvent += this.LevelDetail_didChangeDifficultyBeatmapEvent;
+            levelDetail.didChangeContentEvent += this.LevelDetail_didChangeContentEvent;
 
             if (Plugin.CheckForCustomCampaigns())
             {
-                missionSelection.didSelectMissionLevelEvent += MissionSelection_didSelectMissionLevelEvent_CC;
+                missionSelection.didSelectMissionLevelEvent += this.MissionSelection_didSelectMissionLevelEvent_CC;
             }
             else
             {
-                missionSelection.didSelectMissionLevelEvent += MissionSelection_didSelectMissionLevelEvent_Base;
+                missionSelection.didSelectMissionLevelEvent += this.MissionSelection_didSelectMissionLevelEvent_Base;
             }
 
-            mainMenu.didDeactivateEvent += MainMenu_didDeactivateEvent; ;
+            mainMenu.didDeactivateEvent += this.MainMenu_didDeactivateEvent;
+            ;
         }
-
 
         public void Dispose()
         {
             //Plugin.Log.Debug("Dispose()");
 
-            levelDetail.didChangeDifficultyBeatmapEvent -= LevelDetail_didChangeDifficultyBeatmapEvent;
-            levelDetail.didChangeContentEvent -= LevelDetail_didChangeContentEvent;
+            levelDetail.didChangeDifficultyBeatmapEvent -= this.LevelDetail_didChangeDifficultyBeatmapEvent;
+            levelDetail.didChangeContentEvent -= this.LevelDetail_didChangeContentEvent;
 
-            missionSelection.didSelectMissionLevelEvent -= MissionSelection_didSelectMissionLevelEvent_CC;
-            missionSelection.didSelectMissionLevelEvent -= MissionSelection_didSelectMissionLevelEvent_Base;
+            missionSelection.didSelectMissionLevelEvent -= this.MissionSelection_didSelectMissionLevelEvent_CC;
+            missionSelection.didSelectMissionLevelEvent -= this.MissionSelection_didSelectMissionLevelEvent_Base;
 
-            mainMenu.didDeactivateEvent -= MainMenu_didDeactivateEvent;
+            mainMenu.didDeactivateEvent -= this.MainMenu_didDeactivateEvent;
         }
 
-
-        private void LevelDetail_didChangeDifficultyBeatmapEvent(StandardLevelDetailViewController arg1, IDifficultyBeatmap arg2)
+        private void LevelDetail_didChangeDifficultyBeatmapEvent(StandardLevelDetailViewController arg1)
         {
             //Plugin.Log.Debug("LevelDetail_didChangeDifficultyBeatmapEvent()");
 
-            if (arg1 != null && arg2 != null)
+            if (arg1 != null)
             {
-                DiffcultyBeatmapUpdated(arg2);
+                this.DiffcultyBeatmapUpdated(arg1.beatmapLevel, arg1.beatmapKey);
             }
         }
-
 
         private void LevelDetail_didChangeContentEvent(StandardLevelDetailViewController arg1, StandardLevelDetailViewController.ContentType arg2)
         {
-            //Plugin.Log.Debug("LevelDetail_didChangeContentEvent()");          
-            
-            if (arg1 != null && arg1.selectedDifficultyBeatmap != null)
-            {
-                //Plugin.Log.Debug("NJS: " + arg1.selectedDifficultyBeatmap.noteJumpMovementSpeed);
-                //Plugin.Log.Debug("Offset: " + arg1.selectedDifficultyBeatmap.noteJumpStartBeatOffset);
+            //Plugin.Log.Debug("LevelDetail_didChangeContentEvent()");
 
-                DiffcultyBeatmapUpdated(arg1.selectedDifficultyBeatmap);
+            if (arg2 == StandardLevelDetailViewController.ContentType.OwnedAndReady && arg1 != null)
+            {
+                //var mapData = arg1.beatmapLevel.GetDifficultyBeatmapData(arg1.beatmapKey.beatmapCharacteristic, arg1.beatmapKey.difficulty);
+                //if (mapData != null)
+                //{
+                //    Plugin.Log.Debug("NJS: " + mapData.noteJumpMovementSpeed);
+                //    Plugin.Log.Debug("Offset: " + mapData.noteJumpStartBeatOffset);
+                //}
+                this.DiffcultyBeatmapUpdated(arg1.beatmapLevel, arg1.beatmapKey);
             }
         }
 
-
         private void MissionSelection_didSelectMissionLevelEvent_CC(MissionSelectionMapViewController arg1, MissionNode arg2)
         {
-            // Yes, we must check for both arg2.missionData and arg2.missionData.beatmapCharacteristic:
-            // If a map is not dled, missionID and beatmapDifficulty will be correct, but beatmapCharacteristic will be null
-            // Accessing any null values of arg1 or arg2 will crash CC horribly
+#if false
+             Yes, we must check for both arg2.missionData and arg2.missionData.beatmapCharacteristic:
+             If a map is not dled, missionID and beatmapDifficulty will be correct, but beatmapCharacteristic will be null
+             Accessing any null values of arg1 or arg2 will crash CC horribly
 
-            if (arg2.missionData != null && arg2.missionData.beatmapCharacteristic != null)
-            {
+            if (arg2.missionData != null && arg2.missionData.beatmapCharacteristic != null) {
                 Plugin.Log.Debug("In CC, MissionNode exists");
 
-                //Plugin.Log.Debug("MissionNode - missionid: " + arg2.missionId); //"<color=#0a92ea>[STND]</color> Holdin' Oneb28Easy-1"
-                //Plugin.Log.Debug("MissionNode - difficulty: " + arg2.missionData.beatmapDifficulty); // "Easy" etc
-                //Plugin.Log.Debug("MissionNode - characteristic: " + arg2.missionData.beatmapCharacteristic.serializedName); //"Standard" etc
+                Plugin.Log.Debug("MissionNode - missionid: " + arg2.missionId); //"<color=#0a92ea>[STND]</color> Holdin' Oneb28Easy-1"
+                Plugin.Log.Debug("MissionNode - difficulty: " + arg2.missionData.beatmapDifficulty); // "Easy" etc
+                Plugin.Log.Debug("MissionNode - characteristic: " + arg2.missionData.beatmapCharacteristic.serializedName); //"Standard" etc
 
 
                 if (MissionSelectionPatch.cc_level != null) // lol null check just to print?
                 {
-                    // If a map is not dled, this will be the previous selected node's map
+                     If a map is not dled, this will be the previous selected node's map
                     Plugin.Log.Debug("CC Level: " + MissionSelectionPatch.cc_level.levelID);  // For cross check with arg2.missionId
 
-                    IDifficultyBeatmap difficulty_beatmap = CustomCampaigns.Utils.BeatmapUtils.GetMatchingBeatmapDifficulty(MissionSelectionPatch.cc_level.levelID, arg2.missionData.beatmapCharacteristic, arg2.missionData.beatmapDifficulty);
+                    var difficulty_beatmap = CustomCampaigns.Utils.BeatmapUtils.GetMatchingBeatmapDifficulty(MissionSelectionPatch.cc_level.levelID, arg2.missionData.beatmapCharacteristic, arg2.missionData.beatmapDifficulty);
 
                     if (difficulty_beatmap != null) // lol null check just to print?
                     {
-                        //Plugin.Log.Debug("MissionNode Diff: " + difficulty_beatmap.difficulty);  // For cross check with arg2.missionData.beatmapDifficulty
-                        //Plugin.Log.Debug("MissionNode Offset: " + difficulty_beatmap.noteJumpStartBeatOffset);
-                        //Plugin.Log.Debug("MissionNode NJS: " + difficulty_beatmap.noteJumpMovementSpeed);
+                        Plugin.Log.Debug("MissionNode Diff: " + difficulty_beatmap.difficulty);  // For cross check with arg2.missionData.beatmapDifficulty
+                        Plugin.Log.Debug("MissionNode Offset: " + difficulty_beatmap.noteJumpStartBeatOffset);
+                        Plugin.Log.Debug("MissionNode NJS: " + difficulty_beatmap.noteJumpMovementSpeed);
 
                         DiffcultyBeatmapUpdated(difficulty_beatmap);
                     }
@@ -123,47 +122,37 @@ namespace JDFixer.Managers
             {
                 DiffcultyBeatmapUpdated(null);
             }
+#endif
         }
-
 
         private void MissionSelection_didSelectMissionLevelEvent_Base(MissionSelectionMapViewController arg1, MissionNode arg2)
         {
             // Base campaign
             if (arg2 != null)
             {
-                DiffcultyBeatmapUpdated(arg2.missionData.level.GetDifficultyBeatmap(arg2.missionData.beatmapCharacteristic, arg2.missionData.beatmapDifficulty));
+                var beatmapLevel = arg1._beatmapLevelsModel.GetBeatmapLevel(arg2.missionData.beatmapKey.levelId);
+                this.DiffcultyBeatmapUpdated(beatmapLevel, arg2.missionData.beatmapKey);
             }
         }
-
 
         private void MainMenu_didDeactivateEvent(bool removedFromHierarchy, bool screenSystemDisabling)
         {
             //Plugin.Log.Debug("MainMenu_didDeactivate");
 
-            if (UI.LegacyModifierUI.Instance != null)
-            {
-                UI.LegacyModifierUI.Instance.Refresh();
-            }
+            UI.LegacyModifierUI.Instance?.Refresh();
 
-            if (UI.ModifierUI.Instance != null)
-            {
-                UI.ModifierUI.Instance.Refresh();
-            }
+            UI.ModifierUI.Instance?.Refresh();
 
-            if (UI.CustomOnlineUI.Instance != null)
-            {
-                UI.CustomOnlineUI.Instance.Refresh();
-            }
+            UI.CustomOnlineUI.Instance?.Refresh();
         }
 
-
-        private void DiffcultyBeatmapUpdated(IDifficultyBeatmap difficultyBeatmap)
+        private void DiffcultyBeatmapUpdated(BeatmapLevel level, BeatmapKey difficultyBeatmap)
         {
             //Plugin.Log.Debug("DiffcultyBeatmapUpdated()");
 
-            foreach (var beatmapInfoUpdater in beatmapInfoUpdaters)
+            foreach (var beatmapInfoUpdater in this.beatmapInfoUpdaters)
             {
-                beatmapInfoUpdater.BeatmapInfoUpdated(new BeatmapInfo(difficultyBeatmap));
+                beatmapInfoUpdater.BeatmapInfoUpdated(new BeatmapInfo(level, difficultyBeatmap));
             }
         }
     }
