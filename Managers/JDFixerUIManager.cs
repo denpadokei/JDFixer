@@ -1,9 +1,9 @@
 ﻿using JDFixer.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
 using Zenject;
-using static BeatSaberMarkupLanguage.Components.KEYBOARD;
-using static IPA.Logging.Logger;
 
 namespace JDFixer.Managers
 {
@@ -74,7 +74,7 @@ namespace JDFixer.Managers
         {
             //Plugin.Log.Debug("LevelDetail_didChangeContentEvent()");
 
-            if (arg2 == StandardLevelDetailViewController.ContentType.OwnedAndReady && arg1 != null)
+            if (arg2 == StandardLevelDetailViewController.ContentType.OwnedAndReady && arg1 != null && arg1.beatmapLevel != null)
             {
                 //var mapData = arg1.beatmapLevel.GetDifficultyBeatmapData(arg1.beatmapKey.beatmapCharacteristic, arg1.beatmapKey.difficulty);
                 //if (mapData != null)
@@ -88,41 +88,65 @@ namespace JDFixer.Managers
 
         private void MissionSelection_didSelectMissionLevelEvent_CC(MissionSelectionMapViewController arg1, MissionNode arg2)
         {
-#if false
-             Yes, we must check for both arg2.missionData and arg2.missionData.beatmapCharacteristic:
-             If a map is not dled, missionID and beatmapDifficulty will be correct, but beatmapCharacteristic will be null
-             Accessing any null values of arg1 or arg2 will crash CC horribly
+#if true
+            //Yes, we must check for both arg2.missionData and arg2.missionData.beatmapCharacteristic:
+            //If a map is not dled, missionID and beatmapDifficulty will be correct, but beatmapCharacteristic will be null
+            //Accessing any null values of arg1 or arg2 will crash CC horribly
 
-            if (arg2.missionData != null && arg2.missionData.beatmapCharacteristic != null) {
+            if (arg2.missionData != null && arg2.missionData.beatmapCharacteristic != null)
+            {
                 Plugin.Log.Debug("In CC, MissionNode exists");
 
                 Plugin.Log.Debug("MissionNode - missionid: " + arg2.missionId); //"<color=#0a92ea>[STND]</color> Holdin' Oneb28Easy-1"
                 Plugin.Log.Debug("MissionNode - difficulty: " + arg2.missionData.beatmapDifficulty); // "Easy" etc
                 Plugin.Log.Debug("MissionNode - characteristic: " + arg2.missionData.beatmapCharacteristic.serializedName); //"Standard" etc
 
-
                 if (MissionSelectionPatch.cc_level != null) // lol null check just to print?
                 {
-                     If a map is not dled, this will be the previous selected node's map
+                    //If a map is not dled, this will be the previous selected node's map
                     Plugin.Log.Debug("CC Level: " + MissionSelectionPatch.cc_level.levelID);  // For cross check with arg2.missionId
 
-                    var difficulty_beatmap = CustomCampaigns.Utils.BeatmapUtils.GetMatchingBeatmapDifficulty(MissionSelectionPatch.cc_level.levelID, arg2.missionData.beatmapCharacteristic, arg2.missionData.beatmapDifficulty);
+                    var difficulty_beatmap = GetLevelFromCC(MissionSelectionPatch.cc_level.levelID, arg2.missionData.beatmapCharacteristic, arg2.missionData.beatmapDifficulty);
 
                     if (difficulty_beatmap != null) // lol null check just to print?
                     {
-                        Plugin.Log.Debug("MissionNode Diff: " + difficulty_beatmap.difficulty);  // For cross check with arg2.missionData.beatmapDifficulty
-                        Plugin.Log.Debug("MissionNode Offset: " + difficulty_beatmap.noteJumpStartBeatOffset);
-                        Plugin.Log.Debug("MissionNode NJS: " + difficulty_beatmap.noteJumpMovementSpeed);
+                        //Plugin.Log.Debug("MissionNode Diff: " + difficulty_beatmap.difficulty);  // For cross check with arg2.missionData.beatmapDifficulty
+                        //Plugin.Log.Debug("MissionNode Offset: " + difficulty_beatmap.noteJumpStartBeatOffset);
+                        //Plugin.Log.Debug("MissionNode NJS: " + difficulty_beatmap.noteJumpMovementSpeed);
 
-                        DiffcultyBeatmapUpdated(difficulty_beatmap);
+                        DiffcultyBeatmapUpdated(difficulty_beatmap, arg2.missionData.beatmapKey);
                     }
                 }
             }
             else // Map not dled
             {
-                DiffcultyBeatmapUpdated(null);
+                this.DiffcultyBeatmapUpdated(null, default);
             }
 #endif
+        }
+
+        private static BeatmapLevel GetLevelFromCC(string s, BeatmapCharacteristicSO beatmapCharacteristicSO, BeatmapDifficulty beatmapDifficulty)
+        {
+            if (!Plugin.CheckForCustomCampaigns())
+            {
+                return null;
+            }
+
+            var CCScoreSubmissionPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Custom Campaigns.dll");
+            try
+            {
+                var CCScoreSubmissionAssembly = Assembly.LoadFrom(CCScoreSubmissionPath);
+                var util = CCScoreSubmissionAssembly.GetType("CustomCampaigns.Utils.BeatmapUtils");
+                return (BeatmapLevel)util.GetMethod("GetMatchingBeatmapDifficulty").Invoke(null, new object[] { s, beatmapDifficulty });
+            }
+            catch (FileNotFoundException)
+            {
+                return null;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
         }
 
         private void MissionSelection_didSelectMissionLevelEvent_Base(MissionSelectionMapViewController arg1, MissionNode arg2)
