@@ -114,7 +114,7 @@ namespace JDFixer.Managers
                         //Plugin.Log.Debug("MissionNode Offset: " + difficulty_beatmap.noteJumpStartBeatOffset);
                         //Plugin.Log.Debug("MissionNode NJS: " + difficulty_beatmap.noteJumpMovementSpeed);
 
-                        DiffcultyBeatmapUpdated(difficulty_beatmap, arg2.missionData.beatmapKey);
+                        this.DiffcultyBeatmapUpdated(difficulty_beatmap, arg2.missionData.beatmapKey);
                     }
                 }
             }
@@ -137,7 +137,7 @@ namespace JDFixer.Managers
             {
                 var CCScoreSubmissionAssembly = Assembly.LoadFrom(CCScoreSubmissionPath);
                 var util = CCScoreSubmissionAssembly.GetType("CustomCampaigns.Utils.BeatmapUtils");
-                return (BeatmapLevel)util.GetMethod("GetMatchingBeatmapDifficulty").Invoke(null, new object[] { s, beatmapDifficulty });
+                return (BeatmapLevel)util.GetMethod("GetMatchingBeatmapDifficulty").Invoke(null, new object[] { s, beatmapCharacteristicSO, beatmapDifficulty });
             }
             catch (FileNotFoundException)
             {
