@@ -1,80 +1,62 @@
 ﻿using HarmonyLib;
 using IPA;
-using System;
-using System.Linq;
-using UnityEngine;
+using IPA.Config;
+using IPA.Config.Stores;
+using IPA.Loader;
+using IPALogger = IPA.Logging.Logger;
+using JDFixer.Installers;
+using SiraUtil.Zenject;
 
 namespace JDFixer
 {
-    [Plugin(RuntimeOptions.SingleStartInit)]
-    public class Plugin
+    [Plugin(RuntimeOptions.DynamicInit)]
+    public sealed class Plugin
     {
-        [OnStart]
-        public void OnApplicationStart()
-        {
-            Config.Read();
-            var harmony = new Harmony("com.zephyr.BeatSaber.JDFixer");
-            harmony.PatchAll(System.Reflection.Assembly.GetExecutingAssembly());
+        public static Harmony harmony;
+        //internal static string game_version = "";
 
-            BS_Utils.Utilities.BSEvents.lateMenuSceneLoadedFresh += BSEvents_lateMenuSceneLoadedFresh;
-            BS_Utils.Utilities.BSEvents.difficultySelected += BSEvents_difficultySelected;
-            //BS_Utils.Utilities.BSEvents.gameSceneLoaded += BSEvents_gameSceneLoaded;
-
-            BeatSaberMarkupLanguage.GameplaySetup.GameplaySetup.instance.AddTab("JDFixer", "JDFixer.UI.BSML.modifierUI.bsml", UI.ModifierUI.instance);
-            //BeatSaberMarkupLanguage.GameplaySetup.GameplaySetup.instance.AddTab("JDFixerOnline", "JDFixer.UI.BSML.modifierOnlineUI.bsml", UI.ModifierUI.instance, BeatSaberMarkupLanguage.GameplaySetup.MenuType.Online);
-            UnityEngine.SceneManagement.SceneManager.activeSceneChanged += SceneManager_activeSceneChanged;
-        }
-
-        private void SceneManager_activeSceneChanged(UnityEngine.SceneManagement.Scene arg0, UnityEngine.SceneManagement.Scene arg1)
-        {
-            Config.Write();
-        }
+        internal static IPALogger Log { get; private set; }
 
         [Init]
-        public void Init(IPA.Logging.Logger logger)
+        public Plugin(IPALogger logger, Config conf, Zenjector zenjector)
         {
-            Logger.log = logger;
+            Plugin.Log = logger;
+            PluginConfig.Instance = conf.Generated<PluginConfig>();
+
+            zenjector.Install<JDFixerMenuInstaller>(Location.Menu);
+            //TimeSetup.Inject(zenjector);
         }
 
-        // For when user selects a map with only 1 difficulty or selects a map but does not click a difficulty
-        private void BSEvents_lateMenuSceneLoadedFresh(ScenesTransitionSetupDataSO obj)
-        {
-            var leveldetail = Resources.FindObjectsOfTypeAll<StandardLevelDetailViewController>().FirstOrDefault();
 
-            if (leveldetail != null)
-            {
-                leveldetail.didChangeContentEvent += Leveldetail_didChangeContentEvent;
-            }
+        [OnEnable]
+        public void OnApplicationStart()
+        {
+            //Plugin.Log.Debug("OnApplicationStart()");
+            //game_version = IPA.Utilities.UnityGame.GameVersion.ToString();
+            //Plugin.Log.Debug(game_version);
+
+            harmony = new Harmony("com.zephyr.BeatSaber.JDFixer");
+            //TimeSetup.Patch();
+            harmony.PatchAll(System.Reflection.Assembly.GetExecutingAssembly());
+            CheckForCustomCampaigns();
+            UI.Donate.Refresh_Text();
         }
 
-        // For when user explicitly clicks on a difficulty (Doesn't work if map has only 1 diff)
-        private void BSEvents_difficultySelected(StandardLevelDetailViewController arg1, IDifficultyBeatmap level)
-        {
-            BeatmapInfo.SetSelected(level);
-        }
 
-        // For when user selects a map with only 1 difficulty or selects a map but does not click a difficulty
-        private void Leveldetail_didChangeContentEvent(StandardLevelDetailViewController arg1, StandardLevelDetailViewController.ContentType arg2)
-        {
-            if (arg1 != null && arg1.selectedDifficultyBeatmap != null)
-            {
-                BeatmapInfo.SetSelected(arg1.selectedDifficultyBeatmap);
-            }
-        }
-
-        // Not necessary anymore:
-        /*private void BSEvents_gameSceneLoaded()
-        {
-            bool WillOverride = BS_Utils.Plugin.LevelData.IsSet && !BS_Utils.Gameplay.Gamemode.IsIsolatedLevel
-                && Config.UserConfig.enabled && BS_Utils.Plugin.LevelData.Mode == BS_Utils.Gameplay.Mode.Standard && BS_Utils.Plugin.LevelData.GameplayCoreSceneSetupData.practiceSettings == null;
-            if(WillOverride && false) // false is from "!Config.User.Config.dontForceNJS"
-                BS_Utils.Gameplay.ScoreSubmission.DisableSubmission("JDFixer");
-        }*/
-
-        [OnExit]
+        [OnDisable]
         public void OnApplicationQuit()
         {
-            Config.Write();
+            PluginConfig.Instance.Changed();
+            harmony.UnpatchSelf();
+        }
+
+
+        internal static bool CheckForCustomCampaigns()
+        {
+            var cc_installed = PluginManager.GetPluginFromId("CustomCampaigns");
+            Plugin.Log.Debug("CC installed: " + cc_installed);
+
+            return cc_installed != null;
         }
     }
 }

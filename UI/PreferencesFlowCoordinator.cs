@@ -1,34 +1,39 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using UnityEngine;
+﻿using BeatSaberMarkupLanguage;
 using HMUI;
+using Zenject;
+
 namespace JDFixer.UI
 {
-
-    public class PreferencesFlowCoordinator : FlowCoordinator
+    internal sealed class PreferencesFlowCoordinator : FlowCoordinator
     {
-        public FlowCoordinator ParentFlow { get; set; }
+        internal FlowCoordinator _parentFlow;
         private PreferencesListViewController _prefListView;
-        public void Awake()
+        private RTPreferencesListViewController _rtPrefListView;
+
+        /* Since this is binded as a unity component, our "Constructor" is actually a method called Construct (with an inject attribute)
+         * We would do the same for ViewControllers if we wanna ask for stuff from Zenject
+         */
+        [Inject]
+        private void Construct(PreferencesListViewController preferencesListViewController, RTPreferencesListViewController rTPreferencesListViewController)
         {
-            if (_prefListView == null)
-                _prefListView = BeatSaberMarkupLanguage.BeatSaberUI.CreateViewController<PreferencesListViewController>();
+            _prefListView = preferencesListViewController;
+            _rtPrefListView = rTPreferencesListViewController;
         }
+
         protected override void DidActivate(bool firstActivation, bool addedToHierarchy, bool screenSystemEnabling)
         {
-            if(firstActivation)
-            {
-                showBackButton = true;
-                SetTitle("JDFixer Preferences");
+            showBackButton = true;
+            SetTitle("JDFixer Preferences");
+
+            if (PluginConfig.Instance.use_rt_pref)
+                ProvideInitialViewControllers(_rtPrefListView);
+            else
                 ProvideInitialViewControllers(_prefListView);
-            }
         }
 
         protected override void BackButtonWasPressed(ViewController topViewController)
         {
-            ParentFlow.InvokeMethod("DismissFlowCoordinator", this, ViewController.AnimationDirection.Horizontal, null, false); ;
+            _parentFlow?.DismissFlowCoordinator(this);
         }
     }
 }

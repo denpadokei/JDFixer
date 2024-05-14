@@ -8,9 +8,9 @@ using System.ComponentModel;
 
 namespace JDFixer.UI
 {
-    internal sealed class PreferencesListViewController : BSMLResourceViewController, INotifyPropertyChanged
+    internal sealed class RTPreferencesListViewController : BSMLResourceViewController, INotifyPropertyChanged
     {
-        public override string ResourceName => "JDFixer.UI.BSML.preferencesList.bsml";
+        public override string ResourceName => "JDFixer.UI.BSML.rtPreferencesList.bsml";
 
 
         [UIComponent("njs_slider")]
@@ -34,52 +34,54 @@ namespace JDFixer.UI
         }
 
 
-        [UIValue("min_jd_slider")]
-        private float Min_JD_Slider => PluginConfig.Instance.minJumpDistance;
-        [UIValue("max_jd_slider")]
-        private float Max_JD_Slider => PluginConfig.Instance.maxJumpDistance;
+        [UIValue("min_rt_slider")]
+        private float Min_RT_Slider => PluginConfig.Instance.minReactionTime;
+        [UIValue("max_rt_slider")]
+        private float Max_RT_Slider => PluginConfig.Instance.maxReactionTime;
 
-        [UIComponent("jd_slider")]
-        private SliderSetting JD_Slider;
+        [UIComponent("rt_slider")]
+        private SliderSetting RT_Slider;
 
-        private float New_JD_Value = 18f;
+        private float New_RT_Value = 500f;
 
-        [UIValue("jd_value")]
-        private float JD_Value
+        [UIValue("rt_value")]
+        private float RT_Value
         {
-            get => New_JD_Value;
+            get => New_RT_Value;
             set
             {
-                New_JD_Value = value;
+                New_RT_Value = value;
             }
         }
-        [UIAction("set_jd_value")]
-        private void Set_JD_Value(float value)
+        [UIAction("set_rt_value")]
+        private void Set_RT_Value(float value)
         {
-            JD_Value = value;
+            RT_Value = value;
         }
+
+        [UIAction("rt_slider_formatter")]
+        private string RT_Slider_Formatter(float value) => value.ToString("0") + " ms";
 
 
         [UIComponent("pref_list")]
         private CustomListTableData Pref_List;
-        private JDPref Selected_Pref = null;
-
+        private RTPref Selected_Pref = null;
 
         [UIAction("select_pref")]
         private void Select_Pref(TableView tableView, int row)
         {
-            Selected_Pref = PluginConfig.Instance.preferredValues[row];
+            Selected_Pref = PluginConfig.Instance.rt_preferredValues[row];
         }
 
 
         [UIAction("add_pressed")]
         private void Add_Pressed()
         {
-            if (PluginConfig.Instance.preferredValues.Any(x => x.njs == New_NJS_Value))
+            if (PluginConfig.Instance.rt_preferredValues.Any(x => x.njs == New_NJS_Value))
             {
-                PluginConfig.Instance.preferredValues.RemoveAll(x => x.njs == New_NJS_Value);
+                PluginConfig.Instance.rt_preferredValues.RemoveAll(x => x.njs == New_NJS_Value);
             }
-            PluginConfig.Instance.preferredValues.Add(new JDPref(New_NJS_Value, New_JD_Value));
+            PluginConfig.Instance.rt_preferredValues.Add(new RTPref(New_NJS_Value, New_RT_Value));
             Reload_List_From_Config();
         }
 
@@ -88,10 +90,9 @@ namespace JDFixer.UI
         private void Remove_Pressed()
         {
             if (Selected_Pref == null)
-            {
                 return;
-            }
-            PluginConfig.Instance.preferredValues.RemoveAll(x => x == Selected_Pref);
+
+            PluginConfig.Instance.rt_preferredValues.RemoveAll(x => x == Selected_Pref);
             Reload_List_From_Config();
         }
 
@@ -100,16 +101,14 @@ namespace JDFixer.UI
         {
             Pref_List.data.Clear();
 
-            if (PluginConfig.Instance.preferredValues == null)
-            {
+            if (PluginConfig.Instance.rt_preferredValues == null)
                 return;
-            }
 
-            PluginConfig.Instance.preferredValues.Sort((x, y) => y.njs.CompareTo(x.njs));
+            PluginConfig.Instance.rt_preferredValues.Sort((x, y) => y.njs.CompareTo(x.njs));
 
-            foreach (var pref in PluginConfig.Instance.preferredValues)
+            foreach (var pref in PluginConfig.Instance.rt_preferredValues)
             {
-                Pref_List.data.Add(new CustomListTableData.CustomCellInfo($"{pref.njs} NJS | {pref.jumpDistance} Jump Distance"));
+                Pref_List.data.Add(new CustomListTableData.CustomCellInfo($"{pref.njs} NJS | {pref.reactionTime} ms"));
             }
 
             Pref_List.tableView.ReloadData();
@@ -117,6 +116,8 @@ namespace JDFixer.UI
             Selected_Pref = null;
         }
 
+
+        //----------------------------------------------------------------------------
 
         protected override void DidActivate(bool firstActivation, bool addedToHierarchy, bool screenSystemEnabling)
         {
